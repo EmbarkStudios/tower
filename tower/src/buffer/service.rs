@@ -148,7 +148,6 @@ where
         // get the current Span so that we can explicitly propagate it to the worker
         // if we didn't do this, events on the worker related to this span wouldn't be counted
         // towards that span since the worker would have no way of entering it.
-        let span = tracing::Span::current();
 
         // If we've made it here, then a semaphore permit has already been
         // acquired, so we can freely allocate a oneshot.
@@ -156,7 +155,6 @@ where
 
         match self.tx.send(Message {
             request,
-            span,
             tx,
             _permit,
         }) {

@@ -180,7 +180,6 @@ where
         loop {
             match ready!(self.poll_next_msg(cx)) {
                 Some((msg, first)) => {
-                    let _guard = msg.span.enter();
                     if let Some(ref failed) = self.failed {
                         tracing::trace!("notifying caller about worker failure");
                         let _ = msg.tx.send(Err(failed.clone()));
@@ -207,14 +206,12 @@ where
                         Poll::Pending => {
                             tracing::trace!(service.ready = false, message = "delay");
                             // Put out current message back in its slot.
-                            drop(_guard);
                             self.current_message = Some(msg);
                             return Poll::Pending;
                         }
                         Poll::Ready(Err(e)) => {
                             let error = e.into();
                             tracing::debug!({ %error }, "service failed");
-                            drop(_guard);
                             self.failed(error);
                             let _ = msg.tx.send(Err(self
                                 .failed
